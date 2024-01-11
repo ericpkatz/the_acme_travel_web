@@ -10,6 +10,61 @@ const {
   destroyVacation
 } = require('./db');
 
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+app.get('/api/users', async(req, res, next)=> {
+  try {
+    res.send(await fetchUsers());
+  }
+  catch(ex){
+    next(ex);
+  }
+});
+
+app.get('/api/places', async(req, res, next)=> {
+  try {
+    res.send(await fetchPlaces());
+  }
+  catch(ex){
+    next(ex);
+  }
+});
+
+app.get('/api/vacations', async(req, res, next)=> {
+  try {
+    res.send(await fetchVacations());
+  }
+  catch(ex){
+    next(ex);
+  }
+});
+
+app.post('/api/vacations', async(req, res, next)=> {
+  try {
+    res.status(201).send(await createVacation(req.body));
+  }
+  catch(ex){
+    next(ex);
+  }
+});
+
+app.delete('/api/vacations/:id', async(req, res, next)=> {
+  try {
+    await destroyVacation({ id: req.params.id });
+    res.sendStatus(204);
+  }
+  catch(ex){
+    next(ex);
+  }
+});
+
+app.use((error, req, res, next)=> {
+  console.log(error);
+  res.status(error.status || 500).send({ error: error.message || error });
+});
+
 const init = async()=> {
   console.log('starting');
   await client.connect();
@@ -42,6 +97,8 @@ const init = async()=> {
   console.log(vacations);
 
   console.log('data seeded');
+  const port = process.env.PORT || 3000;
+  app.listen(port, ()=> console.log(`listening on port ${port}`));
 };
 
 init();
